@@ -22,23 +22,25 @@ func NewShipperRepository(db *sqlx.DB) ShipperRepository {
 }
 
 func (r *shipperRepository) Create(ctx context.Context, shipper *models.ShipperRequest) (*models.ShipperResponse, error) {
-	var id int64
 	query := `
-		INSERT INTO shippers (email, name, gender, phone, vehicle_type, vehicle_plate, total_deliveries, status)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id
+		INSERT INTO shippers (id, email, name, gender, phone, vehicle_type, vehicle_plate, total_deliveries, status)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 'available')
 	`
-	err := r.db.QueryRowContext(
+	_, err := r.db.ExecContext(
 		ctx, query,
+		shipper.ID,
 		shipper.Email,
 		shipper.Name,
 		shipper.Gender,
 		shipper.Phone,
 		shipper.VehicleType,
 		shipper.VehiclePlate,
-	).Scan(&id)
+	)
+	if err != nil {
+		return nil, err
+	}
 	return &models.ShipperResponse{
-		ID:              id,
+		ID:              shipper.ID,
 		Email:           shipper.Email,
 		Name:            shipper.Name,
 		Gender:          shipper.Gender,
@@ -48,7 +50,7 @@ func (r *shipperRepository) Create(ctx context.Context, shipper *models.ShipperR
 		VehiclePlate:    shipper.VehiclePlate,
 		TotalDeliveries: 0,
 		Status:          "available",
-	}, err
+	}, nil
 }
 
 func (r *shipperRepository) GetByID(ctx context.Context, id int64) (*models.ShipperResponse, error) {

@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(shipperHandler *rest.ShipperHandler) {
+func SetupRoutes(shipperHandler *rest.ShipperHandler) *gin.Engine {
 	router := gin.Default()
 
 	logger := logger.NewLogger("info")
@@ -17,7 +17,7 @@ func SetupRoutes(shipperHandler *rest.ShipperHandler) {
 	router.Use(middlewares.CORSMiddleware())
 	router.Use(middlewares.LoggingMiddleware(logger))
 	router.Use(middlewares.RecoveryMiddleware(logger))
-	router.Use(middlewares.AuthAdminMiddleware())
+	// router.Use(middlewares.AuthAdminMiddleware())
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -30,6 +30,8 @@ func SetupRoutes(shipperHandler *rest.ShipperHandler) {
 	{
 		setupShipperRoutes(v1, shipperHandler)
 	}
+
+	return router
 }
 
 func setupShipperRoutes(rg *gin.RouterGroup, handler *rest.ShipperHandler) {
@@ -40,3 +42,16 @@ func setupShipperRoutes(rg *gin.RouterGroup, handler *rest.ShipperHandler) {
 		shipper.GET("/", handler.ListShippers)
 	}
 }
+
+
+// curl -X POST http://localhost:8080/api/v1/shippers/ \
+//   -H "Content-Type: application/json" \
+//   -d '{
+//     "email": "duong@example.com",
+//     "password": "supersecurepassword",
+//     "name": "Thai Duong",
+//     "gender": "gay",
+//     "phone": "1234567890",
+//     "vehicleType": "car",
+//     "vehiclePlate": "30K-999.99"
+//   }'

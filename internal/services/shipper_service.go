@@ -35,10 +35,13 @@ func (s *shipperService) CreateShipper(ctx context.Context, shipper *models.Ship
 		Phone:    shipper.Phone,
 		Role:     "shipper",
 	}
-	_, err := s.userClient.Register(ctx, userReq)
+	userResp, err := s.userClient.Register(ctx, userReq)
 	if err != nil {
 		return nil, fmt.Errorf("user service register failed: %w", err)
 	}
+
+	shipper.ID = userResp.UserID
+
 	return s.repo.Create(ctx, shipper)
 }
 
