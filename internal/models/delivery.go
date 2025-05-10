@@ -24,7 +24,7 @@ type DeliveryResponse struct {
 }
 
 type Delivery struct {
-	ID                int64     `db:"id"`
+	ID                int64     `db:"delivery_id"`
 	OrderID           int64     `db:"order_id"`
 	ShipperID         int64     `db:"shipper_id"`
 	RestaurantAddress string    `db:"restaurant_address"`
@@ -52,4 +52,13 @@ type DistanceResponse struct {
 	FromCoords   []float64 `json:"fromCoords"`
 	ToCoords     []float64 `json:"toCoords"`
 	GeometryLine string    `json:"geometryLine,omitempty"`
+}
+
+type DeliveryGetByShipperId struct {
+    DeliveryID int64   `db:"delivery_id" json:"deliveryId"`
+    OrderID    int64   `db:"order_id" json:"orderId"`
+    Distance   float64 `db:"distance" json:"distance"`
+    Duration   float64 `db:"duration" json:"duration"`
+    Fee        int64   `db:"fee" json:"fee"`
+    Status     string  `db:"status" json:"status"`
 }

@@ -48,17 +48,7 @@ func setupDeliveryRouters(rg *gin.RouterGroup, handler *rest.DeliveryHandler) {
 	delivery := rg.Group("/deliveries")
 	{
 		delivery.POST("/", handler.CreateDelivery)
+		delivery.PUT("/:deliveryId/status", handler.UpdateDeliveryStatus)
+		delivery.GET("/shipper/:shipperId", handler.GetDeliveriesByShipperID)
 	}
 }
-
-// curl -X POST http://localhost:8080/api/v1/shippers/ \
-//   -H "Content-Type: application/json" \
-//   -d '{
-//     "email": "duong@example.com",
-//     "password": "supersecurepassword",
-//     "name": "Thai Duong",
-//     "gender": "gay",
-//     "phone": "1234567890",
-//     "vehicleType": "car",
-//     "vehiclePlate": "30K-999.99"
-//   }'

@@ -14,7 +14,7 @@ type DeliveryRepository interface {
 	CreateDelivery(ctx context.Context, delivery *models.Delivery) (int64, error)
 	UpdateDeliveryStatus(ctx context.Context, deliveryID int64, status string) error
 	GetDeliveryByID(ctx context.Context, deliveryID int64) (*models.Delivery, error)
-	GetDeliveriesByShipperID(ctx context.Context, shipperID int64) ([]*models.Delivery, error)
+	GetDeliveriesByShipperID(ctx context.Context, shipperID int64, limit, offset int) ([]*models.DeliveryGetByShipperId, error)
 	GetAvailableShipper(ctx context.Context) (*models.ShipperResponse, error)
 	AssignDelivery(ctx context.Context, orderID int64, shipperID int64) error
 	UpdateShipperStatus(ctx context.Context, shipperID int64, status string) error
@@ -73,11 +73,20 @@ func (r *deliveryRepository) CreateDelivery(ctx context.Context, delivery *model
 }
 
 func (r *deliveryRepository) UpdateDeliveryStatus(ctx context.Context, deliveryID int64, status string) error {
-	query := `UPDATE deliveries SET status = $1, updated_at = NOW() WHERE id = $2`
-	_, err := r.db.ExecContext(ctx, query, status, deliveryID)
+	query := `UPDATE deliveries SET status = $1, updated_at = NOW() WHERE delivery_id = $2`
+	result, err := r.db.ExecContext(ctx, query, status, deliveryID)
 	if err != nil {
 		return fmt.Errorf("failed to update delivery status: %w", err)
 	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("no delivery found with id %d", deliveryID)
+	}
+
 	return nil
 }
 
@@ -94,10 +103,22 @@ func (r *deliveryRepository) GetDeliveryByID(ctx context.Context, deliveryID int
 	return &delivery, nil
 }
 
-func (r *deliveryRepository) GetDeliveriesByShipperID(ctx context.Context, shipperID int64) ([]*models.Delivery, error) {
-	query := `SELECT * FROM deliveries WHERE shipper_id = $1 ORDER BY created_at DESC`
-	var deliveries []*models.Delivery
-	err := r.db.SelectContext(ctx, &deliveries, query, shipperID)
+func (r *deliveryRepository) GetDeliveriesByShipperID(ctx context.Context, shipperID int64, limit, offset int) ([]*models.DeliveryGetByShipperId, error) {
+	query := `
+		SELECT 
+			delivery_id, 
+			order_id, 
+			distance, 
+			duration, 
+			fee, 
+			status
+		FROM deliveries
+		WHERE shipper_id = $1
+		ORDER BY delivery_id DESC
+		LIMIT $2 OFFSET $3
+	`
+	var deliveries []*models.DeliveryGetByShipperId
+	err := r.db.SelectContext(ctx, &deliveries, query, shipperID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get deliveries by shipper ID: %w", err)
 	}

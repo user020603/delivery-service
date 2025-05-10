@@ -11,6 +11,8 @@ import (
 type DeliveryService interface {
 	CreateDelivery(ctx context.Context, req *models.CreateDeliveryRequest) (*models.DeliveryResponse, error)
 	CalculateDistance(ctx context.Context, from, to string) (*models.DistanceResponse, error)
+	UpdateDeliveryStatus(ctx context.Context, deliveryID int64, status string) error
+	GetDeliveriesByShipperID(ctx context.Context, shipperID int64, limit, offset int) ([]*models.DeliveryGetByShipperId, error)
 }
 
 type deliveryService struct {
@@ -86,12 +88,12 @@ func (s *deliveryService) CreateDelivery(ctx context.Context, req *models.Create
 		return nil, fmt.Errorf("failed to assign shipper: %w", err)
 	}
 
-	err = s.repo.UpdateShipperStatus(ctx, shipper.ID, "delivering")
+	err = s.repo.UpdateShipperStatus(ctx, shipper.ID, "assigned")
 	if err != nil {
 		return nil, fmt.Errorf("failed to update shipper status: %w", err)
 	}
 
-	shipper.Status = "delivering"
+	shipper.Status = "assigned"
 
 	return &models.DeliveryResponse{
 		DeliveryID:   deliveryID,
@@ -105,4 +107,12 @@ func (s *deliveryService) CreateDelivery(ctx context.Context, req *models.Create
 		Status:       "assigned",
 		Shipper:      *shipper,
 	}, nil
+}
+
+func (s *deliveryService) UpdateDeliveryStatus(ctx context.Context, deliveryID int64, status string) error {
+	return s.repo.UpdateDeliveryStatus(ctx, deliveryID, status)
+}
+
+func (s *deliveryService) GetDeliveriesByShipperID(ctx context.Context, shipperID int64, limit, offset int) ([]*models.DeliveryGetByShipperId, error) {
+	return s.repo.GetDeliveriesByShipperID(ctx, shipperID, limit, offset)
 }

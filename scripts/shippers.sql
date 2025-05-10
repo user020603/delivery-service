@@ -9,5 +9,5 @@ CREATE TABLE shippers (
     vehicle_type TEXT,
     vehicle_plate TEXT,
     total_deliveries INTEGER DEFAULT 0,
-    status TEXT CHECK (status IN ('available', 'unavailable', 'delivering')) NOT NULL
+    status TEXT CHECK (status IN ('available', 'unavailable', 'delivering', 'assigned')) NOT NULL
 );
