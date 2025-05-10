@@ -17,7 +17,7 @@ type DeliveryRepository interface {
 	GetDeliveriesByShipperID(ctx context.Context, shipperID int64, limit, offset int) ([]*models.DeliveryGetByShipperId, error)
 	GetAvailableShipper(ctx context.Context) (*models.ShipperResponse, error)
 	UpdateShipperStatus(ctx context.Context, shipperID int64, status string) error
-	GetDeliveriesByOrderID(ctx context.Context, orderId int64) ([]*models.DeliveryResponse, error)
+	GetDeliveryByOrderID(ctx context.Context, orderId int64) (*models.DeliveryResponse, error)
 }
 
 type deliveryRepository struct {
@@ -162,49 +162,43 @@ func (r *deliveryRepository) UpdateShipperStatus(ctx context.Context, shipperID 
 	return nil
 }
 
-func (r *deliveryRepository) GetDeliveriesByOrderID(ctx context.Context, orderId int64) ([]*models.DeliveryResponse, error) {
+func (r *deliveryRepository) GetDeliveryByOrderID(ctx context.Context, orderId int64) (*models.DeliveryResponse, error) {
 	query := `
 		SELECT * FROM deliveries 
 		WHERE order_id = $1
 		ORDER BY delivery_id DESC
+		LIMIT 1
 	`
 
-	var deliveries []models.Delivery
-	err := r.db.SelectContext(ctx, &deliveries, query, orderId)
+	var delivery models.Delivery
+	err := r.db.GetContext(ctx, &delivery, query, orderId)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get deliveries: %w", err)
-	}
-	if len(deliveries) == 0 {
-		return nil, fmt.Errorf("no deliveries found for order %d", orderId)
+		return nil, fmt.Errorf("delivery not found: %w", err)
 	}
 
-	responses := make([]*models.DeliveryResponse, 0, len(deliveries))
-	for _, delivery := range deliveries {
-		var shipper models.ShipperResponse
-		shipperQuery := `
-			SELECT id, email, role, name, gender, phone, vehicle_type, vehicle_plate, total_deliveries, status
-			FROM shippers
-			WHERE id = $1
-		`
-		err = r.db.GetContext(ctx, &shipper, shipperQuery, delivery.ShipperID)
-		if err != nil {
-			return nil, fmt.Errorf("shipper not found: %w", err)
-		}
-
-		resp := &models.DeliveryResponse{
-			DeliveryID:   delivery.DeliveryID,
-			OrderID:      delivery.OrderID,
-			Distance:     delivery.Distance,
-			Duration:     delivery.Duration,
-			Fee:          delivery.Fee,
-			FromCoords:   delivery.FromCoords,
-			ToCoords:     delivery.ToCoords,
-			GeometryLine: delivery.GeometryLine,
-			Status:       delivery.Status,
-			Shipper:      shipper,
-		}
-		responses = append(responses, resp)
+	var shipper models.ShipperResponse
+	shipperQuery := `
+		SELECT id, email, role, name, gender, phone, vehicle_type, vehicle_plate, total_deliveries, status
+		FROM shippers
+		WHERE id = $1
+	`
+	err = r.db.GetContext(ctx, &shipper, shipperQuery, delivery.ShipperID)
+	if err != nil {
+		return nil, fmt.Errorf("shipper not found: %w", err)
 	}
 
-	return responses, nil
+	resp := &models.DeliveryResponse{
+		DeliveryID:   delivery.DeliveryID,
+		OrderID:      delivery.OrderID,
+		Distance:     delivery.Distance,
+		Duration:     delivery.Duration,
+		Fee:          delivery.Fee,
+		FromCoords:   delivery.FromCoords,
+		ToCoords:     delivery.ToCoords,
+		GeometryLine: delivery.GeometryLine,
+		Status:       delivery.Status,
+		Shipper:      shipper,
+	}
+
+	return resp, nil
 }

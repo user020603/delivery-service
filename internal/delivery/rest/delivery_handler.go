@@ -113,7 +113,7 @@ func (h *DeliveryHandler) GetDeliveriesByShipperID(c *gin.Context) {
 	c.JSON(http.StatusOK, deliveries)
 }
 
-func (h *DeliveryHandler) GetDeliveriesByOrderID(c *gin.Context) {
+func (h *DeliveryHandler) GetDeliveryByOrderID(c *gin.Context) {
 	claims, _ := c.Get(middlewares.JWTClaimsContextKey)
 	userClaims := claims.(jwt.MapClaims)
 	role := userClaims["role"].(string)
@@ -129,7 +129,7 @@ func (h *DeliveryHandler) GetDeliveriesByOrderID(c *gin.Context) {
 		return
 	}
 
-	deliveries, err := h.service.GetDeliveriesByOrderID(c.Request.Context(), orderId)
+	deliveries, err := h.service.GetDeliveryByOrderID(c.Request.Context(), orderId)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": fmt.Sprintf("delivery for orderId %d not found: %v", orderId, err),
