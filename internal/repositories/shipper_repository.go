@@ -71,7 +71,10 @@ func (r *shipperRepository) GetByID(ctx context.Context, id int64) (*models.Ship
 
 func (r *shipperRepository) GetShippers(ctx context.Context, limit, offset int) ([]*models.ShipperResponse, error) {
 	var shippers []*models.ShipperResponse
-	query := `SELECT * FROM shippers LIMIT $1 OFFSET $2`
+	query := `SELECT id, email, name, gender, phone, role, 
+			vehicle_type, vehicle_plate, total_deliveries, status
+			FROM shippers LIMIT $1 OFFSET $2
+		`
 	err := r.db.SelectContext(ctx, &shippers, query, limit, offset)
 	if err != nil {
 		return nil, err
