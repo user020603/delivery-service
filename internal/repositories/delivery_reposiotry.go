@@ -18,6 +18,7 @@ type DeliveryRepository interface {
 	GetAvailableShipper(ctx context.Context) (*models.ShipperResponse, error)
 	AssignDelivery(ctx context.Context, orderID int64, shipperID int64) error
 	UpdateShipperStatus(ctx context.Context, shipperID int64, status string) error
+	GetDeliveryByOrderID(ctx context.Context, orderID int64) (*models.Delivery, error)
 }
 
 type deliveryRepository struct {
@@ -105,13 +106,7 @@ func (r *deliveryRepository) GetDeliveryByID(ctx context.Context, deliveryID int
 
 func (r *deliveryRepository) GetDeliveriesByShipperID(ctx context.Context, shipperID int64, limit, offset int) ([]*models.DeliveryGetByShipperId, error) {
 	query := `
-		SELECT 
-			delivery_id, 
-			order_id, 
-			distance, 
-			duration, 
-			fee, 
-			status
+		SELECT delivery_id, order_id, distance, duration, fee, from_coords, to_coords, geometry_line, status
 		FROM deliveries
 		WHERE shipper_id = $1
 		ORDER BY delivery_id DESC
@@ -162,4 +157,21 @@ func (r *deliveryRepository) UpdateShipperStatus(ctx context.Context, shipperID 
 		return fmt.Errorf("failed to update shipper status: %w", err)
 	}
 	return nil
+}
+
+func (r *deliveryRepository) GetDeliveryByOrderID(ctx context.Context, orderId int64) (*models.Delivery, error) {
+	query := `
+			SELECT * FROM deliveries 
+			WHERE order_id = $1
+			ORDER BY delivery_id DESC
+			LIMIT 1
+	`
+
+	var result models.Delivery
+	err := r.db.GetContext(ctx, &result, query, orderId)
+	if err != nil {
+		return nil, fmt.Errorf("delivery not found: %w", err)
+	}
+
+	return &result, nil
 }

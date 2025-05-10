@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -73,4 +74,26 @@ func (h *ShipperHandler) ListShippers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, results)
+}
+
+func (h *DeliveryHandler) GetDeliveryByOrderID(c *gin.Context) {
+	orderIdStr := c.Param("orderId")
+	orderId, err := strconv.ParseInt(orderIdStr, 10, 64)
+	if err != nil {
+		// If the orderId is invalid (cannot convert to int64)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid orderId format"})
+		return
+	}
+
+	deliveries, err := h.service.GetDeliveryByOrderID(c.Request.Context(), orderId)
+	if err != nil {
+		// If there is an error retrieving deliveries from the service
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": fmt.Sprintf("delivery for orderId %d not found: %v", orderId, err),
+		})
+		return
+	}
+
+	// Return the deliveries if everything is fine
+	c.JSON(http.StatusOK, deliveries)
 }

@@ -50,5 +50,6 @@ func setupDeliveryRouters(rg *gin.RouterGroup, handler *rest.DeliveryHandler) {
 		delivery.POST("/", handler.CreateDelivery)
 		delivery.PUT("/:deliveryId/status", handler.UpdateDeliveryStatus)
 		delivery.GET("/shipper/:shipperId", handler.GetDeliveriesByShipperID)
+		delivery.GET("/order/:orderId", handler.GetDeliveryByOrderID)
 	}
 }
