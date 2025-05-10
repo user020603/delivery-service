@@ -13,7 +13,7 @@ type DeliveryService interface {
 	CalculateDistance(ctx context.Context, from, to string) (*models.DistanceResponse, error)
 	UpdateDeliveryStatus(ctx context.Context, deliveryID int64, status string) error
 	GetDeliveriesByShipperID(ctx context.Context, shipperID int64, limit, offset int) ([]*models.DeliveryGetByShipperId, error)
-	GetDeliveryByOrderID(ctx context.Context, orderId int64) (*models.Delivery, error)
+	GetDeliveriesByOrderID(ctx context.Context, orderId int64) ([]*models.DeliveryResponse, error)
 }
 
 type deliveryService struct {
@@ -118,6 +118,6 @@ func (s *deliveryService) GetDeliveriesByShipperID(ctx context.Context, shipperI
 	return s.repo.GetDeliveriesByShipperID(ctx, shipperID, limit, offset)
 }
 
-func (s *deliveryService) GetDeliveryByOrderID(ctx context.Context, orderID int64) (*models.Delivery, error) {
-	return s.repo.GetDeliveryByOrderID(ctx, orderID)
+func (s *deliveryService) GetDeliveriesByOrderID(ctx context.Context, orderID int64) ([]*models.DeliveryResponse, error) {
+	return s.repo.GetDeliveriesByOrderID(ctx, orderID)
 }

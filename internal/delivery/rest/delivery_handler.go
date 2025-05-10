@@ -129,7 +129,7 @@ func (h *DeliveryHandler) GetDeliveryByOrderID(c *gin.Context) {
 		return
 	}
 
-	deliveries, err := h.service.GetDeliveryByOrderID(c.Request.Context(), orderId)
+	deliveries, err := h.service.GetDeliveriesByOrderID(c.Request.Context(), orderId)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": fmt.Sprintf("delivery for orderId %d not found: %v", orderId, err),
