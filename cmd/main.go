@@ -24,8 +24,7 @@ func main() {
 	}
 	defer db.Close()
 
-	// mapboxAPIKey := os.Getenv("MAPBOX_API_KEY")
-	mapboxAPIKey := "pk.eyJ1IjoiYWNhbnRob3BoaXMiLCJhIjoiY21hOGNpYWk2MWFyZTJscTFtdndkbzltbiJ9.ci964EVxKJq-2JcQ8Cmlqw"
+	mapboxAPIKey := os.Getenv("MAP_BOX_API_KEY")
 
 	shipperRepo := repositories.NewShipperRepository(db)
 	userClient := &client.UserClient{}
