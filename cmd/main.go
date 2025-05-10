@@ -10,6 +10,7 @@ import (
 	"thanhnt208/delivery-service/internal/delivery/rest"
 	"thanhnt208/delivery-service/internal/repositories"
 	"thanhnt208/delivery-service/internal/services"
+	"thanhnt208/delivery-service/pkg/jwt"
 
 	"github.com/joho/godotenv"
 )
@@ -35,7 +36,7 @@ func main() {
 	deliveryService := services.NewDeliveryService(deliveryRepo, mapboxClient)
 	deliveryHandler, err := rest.NewDeliveryHandler(deliveryService)
 
-	r := routes.SetupRoutes(shipperHandler, deliveryHandler)
+	r := routes.SetupRoutes(shipperHandler, deliveryHandler, jwt.NewJwtUtils())
 
 	port := os.Getenv("DELIVERY_SERVICE_PORT")
 	if port == "" {

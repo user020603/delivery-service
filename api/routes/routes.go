@@ -4,12 +4,17 @@ import (
 	"net/http"
 	"thanhnt208/delivery-service/api/middlewares"
 	"thanhnt208/delivery-service/internal/delivery/rest"
+	"thanhnt208/delivery-service/pkg/jwt"
 	"thanhnt208/delivery-service/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(shipperHandler *rest.ShipperHandler, deliveryHandler *rest.DeliveryHandler) *gin.Engine {
+func SetupRoutes(
+	shipperHandler *rest.ShipperHandler,
+	deliveryHandler *rest.DeliveryHandler,
+	jwtUtils jwt.Utils,
+) *gin.Engine {
 	router := gin.Default()
 
 	logger := logger.NewLogger("info")
@@ -17,39 +22,39 @@ func SetupRoutes(shipperHandler *rest.ShipperHandler, deliveryHandler *rest.Deli
 	router.Use(middlewares.CORSMiddleware())
 	router.Use(middlewares.LoggingMiddleware(logger))
 	router.Use(middlewares.RecoveryMiddleware(logger))
-	// router.Use(middlewares.AuthAdminMiddleware())
+
+	authMiddleware := middlewares.NewAuthMiddleware(jwtUtils)
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"\nversion": "1.0.0\n",
-			"\nstatus":  "UP\n",
+			"version": "1.0.0",
+			"status":  "UP",
 		})
 	})
 
 	v1 := router.Group("/api/v1")
 	{
-		setupShipperRoutes(v1, shipperHandler)
-		setupDeliveryRouters(v1, deliveryHandler)
+		shipperGroup := v1.Group("/shippers")
+		shipperGroup.Use(authMiddleware.ValidateAndExtractJwt())
+		setupShipperRoutes(shipperGroup, shipperHandler)
+
+		deliveryGroup := v1.Group("/deliveries")
+		deliveryGroup.Use(authMiddleware.ValidateAndExtractJwt())
+		setupDeliveryRoutes(deliveryGroup, deliveryHandler)
 	}
 
 	return router
 }
 
 func setupShipperRoutes(rg *gin.RouterGroup, handler *rest.ShipperHandler) {
-	shipper := rg.Group("/shippers")
-	{
-		shipper.POST("/", handler.CreateShipper)
-		shipper.GET("/:id", handler.GetShipperByID)
-		shipper.GET("/", handler.ListShippers)
-	}
+	rg.POST("/", handler.CreateShipper)
+	rg.GET("/:id", handler.GetShipperByID)
+	rg.GET("/", handler.ListShippers)
 }
 
-func setupDeliveryRouters(rg *gin.RouterGroup, handler *rest.DeliveryHandler) {
-	delivery := rg.Group("/deliveries")
-	{
-		delivery.POST("/", handler.CreateDelivery)
-		delivery.PUT("/:deliveryId/status", handler.UpdateDeliveryStatus)
-		delivery.GET("/shipper/:shipperId", handler.GetDeliveriesByShipperID)
-		delivery.GET("/order/:orderId", handler.GetDeliveryByOrderID)
-	}
+func setupDeliveryRoutes(rg *gin.RouterGroup, handler *rest.DeliveryHandler) {
+	rg.POST("/", handler.CreateDelivery)
+	rg.PUT("/:deliveryId/status", handler.UpdateDeliveryStatus)
+	rg.GET("/shipper/:shipperId", handler.GetDeliveriesByShipperID)
+	rg.GET("/order/:orderId", handler.GetDeliveryByOrderID)
 }

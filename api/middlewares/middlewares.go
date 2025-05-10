@@ -1,19 +1,28 @@
 package middlewares
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"net/http"
+	"runtime/debug"
 	"strings"
+	"thanhnt208/delivery-service/pkg/jwt"
 	"thanhnt208/delivery-service/pkg/logger"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
+// -------- Logging Middleware --------
 func LoggingMiddleware(logger *logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
+
+		// Ensure request_id exists
+		requestID := c.Writer.Header().Get("X-Request-ID")
+		if requestID == "" {
+			requestID = uuid.New().String()
+			c.Writer.Header().Set("X-Request-ID", requestID)
+		}
 
 		c.Next()
 
@@ -22,18 +31,21 @@ func LoggingMiddleware(logger *logger.Logger) gin.HandlerFunc {
 			"method", c.Request.Method,
 			"path", c.Request.URL.Path,
 			"status", c.Writer.Status(),
-			"duration", duration,
+			"duration_ms", duration.Milliseconds(),
 			"user_agent", c.Request.UserAgent(),
 			"remote_addr", c.ClientIP(),
-			"request_id", c.Writer.Header().Get("X-Request-ID"))
+			"request_id", requestID,
+		)
 	}
 }
 
+// -------- CORS Middleware --------
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		// c.Writer.Header().Set("Access-Control-Allow-Credentials", "true") // nếu cần
 
 		if c.Request.Method == http.MethodOptions {
 			c.AbortWithStatus(http.StatusNoContent)
@@ -44,6 +56,7 @@ func CORSMiddleware() gin.HandlerFunc {
 	}
 }
 
+// -------- Recovery Middleware --------
 func RecoveryMiddleware(logger *logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
@@ -52,8 +65,11 @@ func RecoveryMiddleware(logger *logger.Logger) gin.HandlerFunc {
 					"error", err,
 					"path", c.Request.URL.Path,
 					"method", c.Request.Method,
+					"stack", string(debug.Stack()),
 				)
 
+				// Đảm bảo header đúng khi trả lỗi
+				c.Writer.Header().Set("Content-Type", "application/json")
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			}
 		}()
@@ -62,46 +78,50 @@ func RecoveryMiddleware(logger *logger.Logger) gin.HandlerFunc {
 	}
 }
 
-func AuthAdminMiddleware() gin.HandlerFunc {
+// -------- JWT Auth Middleware --------
+
+type AuthMiddleware interface {
+	ValidateAndExtractJwt() gin.HandlerFunc
+}
+
+const (
+	JWTClaimsContextKey = "JWTClaimsContextKey"
+)
+
+type authMiddleware struct {
+	jwt jwt.Utils
+}
+
+func (a *authMiddleware) ValidateAndExtractJwt() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
-		if !strings.HasPrefix(authHeader, "Bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing or invalid Authorization header"})
+		if len(authHeader) == 0 {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": "Authorization header is empty",
+			})
 			return
 		}
-
-		token := strings.TrimPrefix(authHeader, "Bearer ")
-		parts := strings.Split(token, ".")
-		if len(parts) != 3 {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid JWT format"})
+		header := strings.Fields(authHeader)
+		if len(header) != 2 || header[0] != "Bearer" {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": "Authorization header is invalid",
+			})
 			return
 		}
-
-		payloadPart := parts[1]
-		// Pad if needed for base64 decoding
-		if m := len(payloadPart) % 4; m != 0 {
-			payloadPart += strings.Repeat("=", 4-m)
-		}
-		payloadBytes, err := base64.URLEncoding.DecodeString(payloadPart)
+		accessToken := header[1]
+		claims, err := a.jwt.ParseToken(accessToken)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid JWT payload"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": err.Error(),
+			})
 			return
 		}
 
-		var payload map[string]interface{}
-		if err := json.Unmarshal(payloadBytes, &payload); err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid JWT payload JSON"})
-			return
-		}
-
-		role, ok := payload["role"].(string)
-		if !ok || role != "admin" {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "admin privileges required"})
-			return
-		}
-
-		c.Set("user_role", role)
-
+		c.Set(JWTClaimsContextKey, claims)
 		c.Next()
 	}
+}
+
+func NewAuthMiddleware(jwtService jwt.Utils) AuthMiddleware {
+	return &authMiddleware{jwt: jwtService}
 }
