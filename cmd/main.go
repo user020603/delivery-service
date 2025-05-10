@@ -23,12 +23,19 @@ func main() {
 	}
 	defer db.Close()
 
+	mapboxAPIKey := "pk.eyJ1IjoiYWNhbnRob3BoaXMiLCJhIjoiY21hOGNpYWk2MWFyZTJscTFtdndkbzltbiJ9.ci964EVxKJq-2JcQ8Cmlqw"
+
 	shipperRepo := repositories.NewShipperRepository(db)
 	userClient := &client.UserClient{}
 	shipperService := services.NewShipperService(shipperRepo, userClient)
 	shipperHandler := rest.NewShipperHandler(shipperService)
 
-	r := routes.SetupRoutes(shipperHandler)
+	deliveryRepo := repositories.NewDeliveryRepository(db)
+	mapboxClient := client.NewMapboxClient(mapboxAPIKey)
+	deliveryService := services.NewDeliveryService(deliveryRepo, mapboxClient)
+	deliveryHandler, err := rest.NewDeliveryHandler(deliveryService)
+
+	r := routes.SetupRoutes(shipperHandler, deliveryHandler)
 
 	port := os.Getenv("DELIVERY_SERVICE_PORT")
 	if port == "" {

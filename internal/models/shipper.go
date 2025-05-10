@@ -4,6 +4,7 @@ type Shipper struct {
 	ID              int64  `db:"id"`
 	Password        string `db:"password"`
 	Email           string `db:"email"`
+	Role            string `db:"role"`
 	Name            string `db:"name"`
 	Gender          string `db:"gender"`
 	Phone           string `db:"phone"`
@@ -14,7 +15,7 @@ type Shipper struct {
 }
 
 type ShipperRequest struct {
-	ID           int64  `json:"userId"` 
+	ID           int64  `json:"userId"`
 	Email        string `json:"email" binding:"required,email"`
 	Password     string `json:"password" binding:"required,min=6"`
 	Name         string `json:"name" binding:"required"`
@@ -25,14 +26,14 @@ type ShipperRequest struct {
 }
 
 type ShipperResponse struct {
-	ID              int64  `json:"userId"`
-	Email           string `json:"email"`
-	Name            string `json:"name"`
-	Gender          string `json:"gender"`
-	Phone           string `json:"phone"`
-	Role            string `json:"role"`
-	VehicleType     string `json:"vehicleType"`
-	VehiclePlate    string `json:"vehiclePlate"`
-	TotalDeliveries int    `json:"totalDeliveries"`
-	Status          string `json:"status"`
+	ID              int64  `json:"userId" db:"id"`
+	Email           string `json:"email" db:"email"`
+	Name            string `json:"name" db:"name"`
+	Gender          string `json:"gender" db:"gender"`
+	Phone           string `json:"phone" db:"phone"`
+	Role            string `json:"role" db:"role"`
+	VehicleType     string `json:"vehicleType" db:"vehicle_type"`
+	VehiclePlate    string `json:"vehiclePlate" db:"vehicle_plate"`
+	TotalDeliveries int    `json:"totalDeliveries" db:"total_deliveries"`
+	Status          string `json:"status" db:"status"`
 }

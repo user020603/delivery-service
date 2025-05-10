@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(shipperHandler *rest.ShipperHandler) *gin.Engine {
+func SetupRoutes(shipperHandler *rest.ShipperHandler, deliveryHandler *rest.DeliveryHandler) *gin.Engine {
 	router := gin.Default()
 
 	logger := logger.NewLogger("info")
@@ -29,6 +29,7 @@ func SetupRoutes(shipperHandler *rest.ShipperHandler) *gin.Engine {
 	v1 := router.Group("/api/v1")
 	{
 		setupShipperRoutes(v1, shipperHandler)
+		setupDeliveryRouters(v1, deliveryHandler)
 	}
 
 	return router
@@ -43,6 +44,12 @@ func setupShipperRoutes(rg *gin.RouterGroup, handler *rest.ShipperHandler) {
 	}
 }
 
+func setupDeliveryRouters(rg *gin.RouterGroup, handler *rest.DeliveryHandler) {
+	delivery := rg.Group("/deliveries")
+	{
+		delivery.POST("/", handler.CreateDelivery)
+	}
+}
 
 // curl -X POST http://localhost:8080/api/v1/shippers/ \
 //   -H "Content-Type: application/json" \

@@ -23,12 +23,13 @@ func NewShipperRepository(db *sqlx.DB) ShipperRepository {
 
 func (r *shipperRepository) Create(ctx context.Context, shipper *models.ShipperRequest) (*models.ShipperResponse, error) {
 	query := `
-		INSERT INTO shippers (id, email, name, gender, phone, vehicle_type, vehicle_plate, total_deliveries, status)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 'available')
+		INSERT INTO shippers (id, password, email, role, name, gender, phone, vehicle_type, vehicle_plate, total_deliveries, status)
+		VALUES ($1, $2, $3, 'shipper', $4, $5, $6, $7, $8, 0, 'available')
 	`
 	_, err := r.db.ExecContext(
 		ctx, query,
 		shipper.ID,
+		shipper.Password,
 		shipper.Email,
 		shipper.Name,
 		shipper.Gender,

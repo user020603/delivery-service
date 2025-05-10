@@ -96,12 +96,23 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
 
-// curl -X POST http://localhost:8080/api/v1/shippers/   -H "Content-Type: application/json"   -d '{
-//     "email": "duong@example.com",
+// curl -X POST http://localhost:8080/api/v1/shippers/ \
+//   -H "Content-Type: application/json" \
+//   -d '{
+//     "email": "trantri@example.com",
 //     "password": "supersecurepassword",
-//     "name": "Thai Duong",
-//     "gender": "gay",
-//     "phone": "1234567890",
+//     "name": "trantri",
+//     "gender": "male",
+//     "phone": "0223456789",
 //     "vehicleType": "car",
-//     "vehiclePlate": "30K-999.99"
+//     "vehiclePlate": "30K-12345"
+// }'
+
+// # Create a new delivery
+// curl -X POST http://localhost:8080/api/v1/deliveries/ \
+//   -H "Content-Type: application/json" \
+//   -d '{
+//     "orderId": 12345,
+//     "restaurantAddress": "Chung cư Season Avenue",
+//     "shippingAddress": "22 Ao Sen, Mộ Lao, Hà Đông, Hà Nội"
 //   }'
