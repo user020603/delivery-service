@@ -99,13 +99,13 @@ func main() {
 // curl -X POST http://localhost:8080/api/v1/shippers/ \
 //   -H "Content-Type: application/json" \
 //   -d '{
-//     "email": "trantri@example.com",
+//     "email": "tienthanh@example.com",
 //     "password": "supersecurepassword",
-//     "name": "trantri",
+//     "name": "tienthanh",
 //     "gender": "male",
-//     "phone": "0223456789",
-//     "vehicleType": "car",
-//     "vehiclePlate": "30K-12345"
+//     "phone": "343112312",
+//     "vehicleType": "plane",
+//     "vehiclePlate": "PLZ-1234"
 // }'
 
 // # Create a new delivery

@@ -56,7 +56,12 @@ func (r *shipperRepository) Create(ctx context.Context, shipper *models.ShipperR
 
 func (r *shipperRepository) GetByID(ctx context.Context, id int64) (*models.ShipperResponse, error) {
 	var shipper models.ShipperResponse
-	query := `SELECT * FROM shippers WHERE id = $1`
+	query := `SELECT 
+		id, email, name, gender, phone, role, 
+		vehicle_type, vehicle_plate, total_deliveries, status
+		FROM shippers
+		WHERE id = $1
+	`
 	err := r.db.GetContext(ctx, &shipper, query, id)
 	if err != nil {
 		return nil, err
