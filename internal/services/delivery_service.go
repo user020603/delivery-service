@@ -84,10 +84,10 @@ func (s *deliveryService) CreateDelivery(ctx context.Context, req *models.Create
 		return nil, fmt.Errorf("failed to create delivery: %w", err)
 	}
 
-	err = s.repo.AssignDelivery(ctx, req.OrderID, shipper.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to assign shipper: %w", err)
-	}
+	// err = s.repo.AssignDelivery(ctx, req.OrderID, shipper.ID)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to assign shipper: %w", err)
+	// }
 
 	err = s.repo.UpdateShipperStatus(ctx, shipper.ID, "assigned")
 	if err != nil {

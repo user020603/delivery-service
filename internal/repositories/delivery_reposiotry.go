@@ -16,7 +16,7 @@ type DeliveryRepository interface {
 	GetDeliveryByID(ctx context.Context, deliveryID int64) (*models.Delivery, error)
 	GetDeliveriesByShipperID(ctx context.Context, shipperID int64, limit, offset int) ([]*models.DeliveryGetByShipperId, error)
 	GetAvailableShipper(ctx context.Context) (*models.ShipperResponse, error)
-	AssignDelivery(ctx context.Context, orderID int64, shipperID int64) error
+	// AssignDelivery(ctx context.Context, orderID int64, shipperID int64) error
 	UpdateShipperStatus(ctx context.Context, shipperID int64, status string) error
 	GetDeliveryByOrderID(ctx context.Context, orderID int64) (*models.Delivery, error)
 }
@@ -154,14 +154,14 @@ func (r *deliveryRepository) GetAvailableShipper(ctx context.Context) (*models.S
 	return &shipper, nil
 }
 
-func (r *deliveryRepository) AssignDelivery(ctx context.Context, orderID int64, shipperID int64) error {
-	query := `UPDATE orders SET shipper_id = $1, status = 'assigned' WHERE id = $2`
-	_, err := r.db.ExecContext(ctx, query, shipperID, orderID)
-	if err != nil {
-		return fmt.Errorf("failed to assign delivery: %w", err)
-	}
-	return nil
-}
+// func (r *deliveryRepository) AssignDelivery(ctx context.Context, orderID int64, shipperID int64) error {
+// 	query := `UPDATE orders SET shipper_id = $1, status = 'assigned' WHERE id = $2`
+// 	_, err := r.db.ExecContext(ctx, query, shipperID, orderID)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to assign delivery: %w", err)
+// 	}
+// 	return nil
+// }
 
 func (r *deliveryRepository) UpdateShipperStatus(ctx context.Context, shipperID int64, status string) error {
 	query := `UPDATE shippers SET status = $1 WHERE id = $2`
