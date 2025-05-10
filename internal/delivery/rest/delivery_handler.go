@@ -113,7 +113,7 @@ func (h *DeliveryHandler) GetDeliveriesByShipperID(c *gin.Context) {
 	c.JSON(http.StatusOK, deliveries)
 }
 
-func (h *DeliveryHandler) GetDeliveryByOrderID(c *gin.Context) {
+func (h *DeliveryHandler) GetDeliveriesByOrderID(c *gin.Context) {
 	claims, _ := c.Get(middlewares.JWTClaimsContextKey)
 	userClaims := claims.(jwt.MapClaims)
 	role := userClaims["role"].(string)
