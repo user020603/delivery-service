@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 )
 
 type UserClient struct{}
@@ -31,11 +32,10 @@ type RegisterUserResponse struct {
 }
 
 func (c *UserClient) Register(ctx context.Context, req *RegisterUserRequest) (*RegisterUserResponse, error) {
-	// baseURL := os.Getenv("USER_SERVICE_URL")
-	// if baseURL == "" {
-	// 	return nil, fmt.Errorf("USER_SERVICE_URL environment variable is not set")
-	// }
-	baseURL := "http://localhost:8081/auth"
+	baseURL := os.Getenv("USER_SERVICE_URL")
+	if baseURL == "" {
+		return nil, fmt.Errorf("USER_SERVICE_URL environment variable is not set")
+	}
 	requestURL := baseURL + "/register"
 
 	req.Role = "shipper"

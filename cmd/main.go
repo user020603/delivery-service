@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	_ = godotenv.Load()
+	_ = godotenv.Load("../.env")
 
 	db, err := config.ConnectPostgres()
 	if err != nil {
@@ -24,7 +24,7 @@ func main() {
 	}
 	defer db.Close()
 
-	mapboxAPIKey := "pk.eyJ1IjoiYWNhbnRob3BoaXMiLCJhIjoiY21hOGNpYWk2MWFyZTJscTFtdndkbzltbiJ9.ci964EVxKJq-2JcQ8Cmlqw"
+	mapboxAPIKey := os.Getenv("MAPBOX_API_KEY")
 
 	shipperRepo := repositories.NewShipperRepository(db)
 	userClient := &client.UserClient{}
