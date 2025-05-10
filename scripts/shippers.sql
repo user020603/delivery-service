@@ -1,5 +1,5 @@
 CREATE TABLE shippers (
-    id SERIAL PRIMARY KEY,
+    id INTEGER NOT NULL,
     password TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     role TEXT NOT NULL,
