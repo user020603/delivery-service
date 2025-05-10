@@ -99,20 +99,20 @@ func main() {
 // curl -X POST http://localhost:8080/api/v1/shippers/ \
 //   -H "Content-Type: application/json" \
 //   -d '{
-//     "email": "anhthoxay@kos.com",
-//     "password": "asdasdasd",
-//     "name": "anh tho xay",
+//     "email": "anhphuho@kos.com",
+//     "password": "asdvsdvsdvsdvdasdasd",
+//     "name": "anh phu ho",
 //     "gender": "male",
-//     "phone": "345345345",
-//     "vehicleType": "hha",
-//     "vehiclePlate": "boat-1223434"
+//     "phone": "234234234",
+//     "vehicleType": "rbrtb",
+//     "vehiclePlate": "droneat-1223434"
 // }'
 
 // # Create a new delivery
 // curl -X POST http://localhost:8080/api/v1/deliveries/ \
 //   -H "Content-Type: application/json" \
 //   -d '{
-//     "orderId": 12345,
+//     "orderId": 345,
 //     "restaurantAddress": "Quảng trường Ba Đình, Hà Nội",
 //     "shippingAddress": "22 Ao Sen, Mộ Lao, Hà Đông, Hà Nội"
 //   }'
