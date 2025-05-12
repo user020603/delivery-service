@@ -87,16 +87,23 @@ func (r *deliveryRepository) UpdateDeliveryStatus(ctx context.Context, deliveryI
 		return fmt.Errorf("no delivery found with id %d", deliveryID)
 	}
 
-	if status == "completed" {
-		var shipperID int
-		err = r.db.GetContext(ctx, &shipperID, "SELECT shipper_id FROM deliveries WHERE delivery_id = $1", deliveryID)
-		if err != nil {
-			return fmt.Errorf("failed to get shipper_id: %w", err)
-		}
+	var shipperID int
+	err = r.db.GetContext(ctx, &shipperID, "SELECT shipper_id FROM deliveries WHERE delivery_id = $1", deliveryID)
+	if err != nil {
+		return fmt.Errorf("failed to get shipper_id: %w", err)
+	}
 
+	if status == "completed" {
 		_, err = r.db.ExecContext(ctx, "UPDATE shippers SET total_deliveries = total_deliveries + 1, status = 'available' WHERE id = $1", shipperID)
 		if err != nil {
 			return fmt.Errorf("failed to update shipper total_deliveries: %w", err)
+		}
+	}
+
+	if status == "canceled" {
+		_, err = r.db.ExecContext(ctx, "UPDATE shippers SET status = 'available' WHERE id = $1", shipperID)
+		if err != nil {
+			return fmt.Errorf("failed to update shipper status: %w", err)
 		}
 	}
 
